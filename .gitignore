@@ -1,3 +1,76 @@
-*.vs
-*.log
-client/console client/obj/
+# =========================================================
+# Секреты — НЕ КОММИТИТЬ НИКОГДА
+# =========================================================
+**/ConectionSettings.json
+*.secrets.json
+appsettings.*.Local.json
+appsettings.Local.json
+
+# =========================================================
+# .NET build output
+# =========================================================
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+publish/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.pdb
+*.cache
+*.Up2Date
+
+# =========================================================
+# Visual Studio / VS Code
+# =========================================================
+.vs/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*~
+
+# =========================================================
+# Логи
+# =========================================================
+[Ll]ogs/*
+![Ll]ogs/*.cs
+# =========================================================
+# NuGet / restore
+# =========================================================
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# =========================================================
+# OS
+# =========================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================================================
+# Тестовые / временные
+# =========================================================
+*.tmp
+*.bak
+*.orig
+*.rej
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+
