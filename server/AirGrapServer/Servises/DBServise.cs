@@ -42,14 +42,15 @@ public class DbService (NpgsqlDataSource _dataBase) : IDbService
             throw new RegistrationFailedException();
         }
     }
-    public async Task Auntification(string login,string Password)
+    public async Task<string?> Auntification(string login,string Password)
     {
         try
         {
-            await using var cmd = _dataBase.CreateCommand("auntification($1,$2)");
+            await using var cmd = _dataBase.CreateCommand("select auntification($1,$2)");
             cmd.Parameters.AddWithValue(login);
             cmd.Parameters.AddWithValue(Password);
             string? token = (await cmd.ExecuteScalarAsync() ?? String.Empty).ToString();
+            return token;
         }
         catch (PostgresException ex) when (ex.SqlState == "23505")
         { 

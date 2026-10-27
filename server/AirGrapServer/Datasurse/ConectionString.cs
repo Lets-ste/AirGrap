@@ -8,6 +8,6 @@ public class ConectionString
     public int Port { get; set; } = 5432;
     public string Database { get; set; } = "airgrap";
     public string Username { get; set; } = "postgres";
-    public string Password { get; set; } = "secret";
+    public string Password { get; set; } = "postgre";
         
 }

@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using AirGrap.Services;
-using System.Threading.Tasks;
 namespace AirGrap.Controllers;
 
 [ApiController]
@@ -17,12 +15,6 @@ public class HomeController : ControllerBase
     public IActionResult Index()
     {
         return Ok("Server is Actiive");
-    }
-
-    [HttpGet("/time")]
-    public IActionResult Time()
-    {
-        return Ok(DateTime.Now.ToString());
     }
     [HttpGet("/test")]
     public async Task<IActionResult> TestConect()
