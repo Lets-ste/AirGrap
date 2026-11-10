@@ -39,7 +39,7 @@ public class UserController(IDbService _dbservise) : ControllerBase
     try
     {
       string? token = await _dbservise.Auntification(body.login,body.password);
-      return (token == null || token == String.Empty)? NotFound("user not found"): Ok(token);
+      return (token == null || token == String.Empty)? NotFound("user not found"): LocalRedirect($"/User/{token}");
     }
     catch (UserAlreadyExistsException ex)
     {
@@ -50,5 +50,10 @@ public class UserController(IDbService _dbservise) : ControllerBase
       Logger.AddLog(String.Concat(ex.Message,ex.Data.ToString()));
       return StatusCode(500, new { error = "Internal server error pliase try again"});
     }
+  }
+  [HttpGet("{token}")]
+  public IActionResult Authorized(string token)
+  {
+    return Ok("Auntification ok");
   }
 }

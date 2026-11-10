@@ -21,4 +21,9 @@ public class HomeController : ControllerBase
     {
         return Ok((await _DbServise.CheckConnectionAsync()).ToString());
     }
+    [HttpGet("/red")]
+    public async Task<IActionResult> red()
+    {
+        return Redirect("/test");
+    }
 }
