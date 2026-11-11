@@ -23,6 +23,10 @@ public class UserController(IDbService _dbservise) : ControllerBase
     }
     catch (UserAlreadyExistsException ex)
     {
+      return BadRequest(new {error = ex.Message});
+    }
+    catch (NullInputFieldException ex)
+    {
       return Conflict(new {error = ex.Message});
     }
     catch(Exception ex)

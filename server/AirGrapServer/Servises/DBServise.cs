@@ -36,6 +36,10 @@ public class DbService (NpgsqlDataSource _dataBase) : IDbService
         {
             throw new UserAlreadyExistsException(login);
         }
+        catch (PostgresException ex) when (ex.SqlState == "23502")
+        {
+            throw new NullInputFieldException();
+        }
         catch (PostgresException ex)
         {
             Console.WriteLine($"Registration failed: {ex.Message}");
@@ -52,6 +56,7 @@ public class DbService (NpgsqlDataSource _dataBase) : IDbService
             string? token = (await cmd.ExecuteScalarAsync() ?? String.Empty).ToString();
             return token;
         }
+
         catch (PostgresException ex) when (ex.SqlState == "23505")
         { 
             throw new UserAlreadyExistsException(login);
