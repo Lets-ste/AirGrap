@@ -19,6 +19,7 @@ public class HomeController : ControllerBase
     [HttpGet("/test")]
     public async Task<IActionResult> TestConect()
     {
+        Logger.AddErrorLog("Server Start");
         return Ok((await _DbServise.CheckConnectionAsync()).ToString());
     }
     [HttpGet("/red")]

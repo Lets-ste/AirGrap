@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using AirGrap.Exceptions;
-using AirGrap.Log;
 using AirGrap.DTOs;
 
 namespace AirGrap.Controllers;
@@ -27,11 +26,11 @@ public class UserController(IDbService _dbservise) : ControllerBase
     }
     catch (NullInputFieldException ex)
     {
-      return Conflict(new {error = ex.Message});
+      return BadRequest(new {error = ex.Message});
     }
     catch(Exception ex)
     {
-      Logger.AddLog(String.Concat(ex.Message,ex.Data.ToString()));
+      Logger.AddErrorLog(String.Concat(ex.Message,ex.Data.ToString()));
       return StatusCode(500, new { error = "Internal server error pliase try again"});
     }
   }
@@ -51,7 +50,7 @@ public class UserController(IDbService _dbservise) : ControllerBase
     }
     catch(Exception ex)
     {
-      Logger.AddLog(String.Concat(ex.Message,ex.Data.ToString()));
+      Logger.AddErrorLog(String.Concat(ex.Message,ex.Data.ToString()));
       return StatusCode(500, new { error = "Internal server error pliase try again"});
     }
   }

@@ -16,7 +16,7 @@ public class DbService (NpgsqlDataSource _dataBase) : IDbService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"DB check failed: {ex.Message}");
+            Logger.AddErrorLog($"DB check failed: {ex.Message}");
             return ServerStatus.NoConection;
         }
     }

@@ -1,0 +1,43 @@
+{"Time":"2026-11-12T12:38:00.0286394+05:00","Error":"Server Start","Class":"AirGrap.Controllers.HomeController\u002B\u003CTestConect\u003Ed__3","Method":"MoveNext"}
+{"Time":"2026-11-12T12:38:01.6069123+05:00","Error":"Server Start","Class":"AirGrap.Controllers.HomeController\u002B\u003CTestConect\u003Ed__3","Method":"MoveNext"}
+{"Time":"2026-11-12T12:38:02.0932735+05:00","Error":"Server Start","Class":"AirGrap.Controllers.HomeController\u002B\u003CTestConect\u003Ed__3","Method":"MoveNext"}
+{"Time":"2026-11-12T12:38:02.3067383+05:00","Error":"Server Start","Class":"AirGrap.Controllers.HomeController\u002B\u003CTestConect\u003Ed__3","Method":"MoveNext"}
+{"Time":"2026-11-12T12:38:02.6774204+05:00","Error":"Server Start","Class":"AirGrap.Controllers.HomeController\u002B\u003CTestConect\u003Ed__3","Method":"MoveNext"}
+{"Time":"2026-11-12T12:39:30.512379+05:00","Error":"Server Start","Class":"AirGrap.Controllers.HomeController\u002B\u003CTestConect\u003Ed__3"}
+{
+  "Time": "2026-11-12T12:42:17.3615381+05:00",
+  "Error": "Server Start",
+  "Class": "AirGrap.Controllers.HomeController+<TestConect>d__3"
+}
+{
+  "Time": "2026-11-12T12:55:20.9196073+05:00",
+  "Error": "Server Start",
+  "Class": "AirGrap.Controllers.HomeController\u002B\u003CTestConect\u003Ed__3"
+}
+{
+  "Time": "2026-11-12T12:55:24.4702257+05:00",
+  "Error": "Server Start",
+  "Class": "AirGrap.Controllers.HomeController\u002B\u003CTestConect\u003Ed__3"
+}
+{
+  "Time": "2026-11-12T12:55:45.8187496+05:00",
+  "Error": "Server Start",
+  "Class": "AirGrap.Controllers.HomeController.TestConect"
+}
+{
+  "Time": "2026-11-12T12:56:21.7069452+05:00",
+  "Error": "Server Start",
+  "Class": "AirGrap.Controllers.HomeController.TestConect()"
+}
+{
+  "Time": "2026-11-12T13:00:18.1283098+05:00",
+  "Class": "AirGrap.Controllers.HomeController.TestConect()",
+  "Error": "Server Start",
+  "Context": "NotContext"
+}
+{
+  "Time": "2026-11-12T13:18:56.7378865+05:00",
+  "Class": "AirGrap.Program",
+  "Error": "Server failed Start",
+  "Context": "System.FormatException: The input string \u0027ff\u0027 was not in a correct format.\r\n   at System.Number.ThrowFormatException[TChar](ReadOnlySpan\u00601 value)\r\n   at System.Int32.Parse(String s)\r\n   at AirGrap.Program.Main(String[] args) in C:\\Users\\isip-23-1\\Desktop\\AirGrap\\server\\AirGrapServer\\Program.cs:line 14"
+}
