@@ -1,0 +1,1573 @@
+﻿Directory Tree:
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\AirGrapServer.csproj
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\Program.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\Controllers\HomeController.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\Controllers\UserController.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\Datasurse\ConectionString.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\Datasurse\DataBase.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\Datasurse\ServerStatus.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\DTOS\AuntificationDTO.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\DTOS\RegistrationDTO.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\Exceptions\AuntificationExceptions.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\Exceptions\RegistrationExceptions.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\Exceptions\UserExceptions.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\Logs\loger.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\Logs\LogFormat.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\Servises\DBServise.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\AirGrapServer\Servises\IDBServise.cs
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\database\functions.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\database\planner.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\database\procedure.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\database\qwery.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\database\tables.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\database\triggers.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\Autonomous.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\Basic.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\Chain.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\ClientMessages.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\CopyToFromProgram.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\CronStyle.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\DelayedRetry.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\Download.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\ErrorHandling.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\Etcd.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\Exclusive.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\Log.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\Mail.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\ManyChains.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\ManyTasks.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\NoOp.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\RemoteDB.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\SelfDestruct.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\Shell.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\Shutdown.sql
+C:\Users\letsp\OneDrive\Desktop\AirGrap\server\planner\samples\Sleep.sql
+
+File: AirGrapServer\AirGrapServer.csproj
+----------------
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.14" />
+    <PackageReference Include="Npgsql" Version="10.0.3" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.18.3" />
+  </ItemGroup>
+
+</Project>
+
+ 
+File: AirGrapServer\Program.cs
+----------------
+using Microsoft.AspNetCore.OpenApi;
+using AirGrap.Services;
+using AirGrap.Datasurse;
+using Scalar.AspNetCore;
+namespace AirGrap;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Logger.Init();
+        Logger.AddLog("Server Start");
+        try
+        {
+            DataBase dataBase = new();
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddSingleton(dataBase.dataSource);
+            builder.Services.AddSingleton<IDbService, DbService>();
+            builder.Services.AddOpenApi();
+            builder.Services.AddControllers();
+            var app = builder.Build();
+            app.MapControllers();
+            app.MapOpenApi();
+            app.MapScalarApiReference();
+            app.Run();
+        }
+        catch(Exception ex)
+        {
+            Logger.AddErrorLog("Server failed Start",ex.ToString());
+            Logger.AddLog("Server Crashed");
+        }
+    }
+    
+}
+ 
+File: AirGrapServer\Controllers\HomeController.cs
+----------------
+using Microsoft.AspNetCore.Mvc;
+namespace AirGrap.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class HomeController : ControllerBase
+{
+    private readonly IDbService _DbServise;
+
+    public HomeController(IDbService DbServise)
+    {
+        _DbServise = DbServise;
+    }
+    [HttpGet("/")]
+    public IActionResult Index()
+    {
+        return Ok("Server is Actiive");
+    }
+    [HttpGet("/test")]
+    public async Task<IActionResult> TestConect()
+    {
+        Logger.AddErrorLog("Server Start");
+        return Ok((await _DbServise.CheckConnectionAsync()).ToString());
+    }
+    [HttpGet("/red")]
+    public async Task<IActionResult> red()
+    {
+        return Redirect("/test");
+    }
+}
+ 
+File: AirGrapServer\Controllers\UserController.cs
+----------------
+using Microsoft.AspNetCore.Mvc;
+using AirGrap.Exceptions;
+using AirGrap.DTOs;
+
+namespace AirGrap.Controllers;
+
+[ApiController]
+[Route("user")]
+public class UserController(IDbService _dbservise) : ControllerBase
+{
+  [HttpPost("registration")]
+  public async Task<IActionResult> Registration([FromBody] RegistrationDTO body)
+  {
+    if (body.login == null  || body.login.Length < 4) return BadRequest("login is too short < 4 characters");
+    if (body.password == null  || body.password.Length < 8) return BadRequest("the password is too short < 8 characters");
+    else if (!body.password.Any(char.IsLetter)) return BadRequest("The password contains no letters.");
+    if (body.nickname == null  || body.nickname.Length < 4) return BadRequest("nickname is too short < 4 characters");
+    try
+    {
+      await _dbservise.Registration(body.login,body.password,body.nickname);
+      return Ok();
+    }
+    catch (UserAlreadyExistsException ex)
+    {
+      return BadRequest(new {error = ex.Message});
+    }
+    catch (NullInputFieldException ex)
+    {
+      return BadRequest(new {error = ex.Message});
+    }
+    catch(Exception ex)
+    {
+      Logger.AddErrorLog(String.Concat(ex.Message,ex.Data.ToString()));
+      return StatusCode(500, new { error = "Internal server error pliase try again"});
+    }
+  }
+  [HttpPost("auntification")]
+  public async Task<IActionResult> Auntification(AuntificationDTO body)
+  {
+    if (body.login == null) return BadRequest("login is null");
+    if (body.password == null ) return BadRequest("the password is null");
+    try
+    {
+      string? token = await _dbservise.Auntification(body.login,body.password);
+      return (token == null || token == String.Empty)? NotFound("user not found"): LocalRedirect($"/User/{token}");
+    }
+    catch (UserAlreadyExistsException ex)
+    {
+      return Conflict(new {error = ex.Message});
+    }
+    catch(Exception ex)
+    {
+      Logger.AddErrorLog(String.Concat(ex.Message,ex.Data.ToString()));
+      return StatusCode(500, new { error = "Internal server error pliase try again"});
+    }
+  }
+  [HttpGet("{token}")]
+  public IActionResult Authorized(string token)
+  {
+    return Ok("Auntification ok");
+  }
+}
+ 
+File: AirGrapServer\Datasurse\ConectionString.cs
+----------------
+using System;
+
+namespace AirGrap.Datasurse;
+
+public class ConectionString
+{
+    public string Host { get; set; } = "localhost" ;
+    public int Port { get; set; } = 5432;
+    public string Database { get; set; } = "airgrap";
+    public string Username { get; set; } = "postgres";
+    public string Password { get; set; } = "postgre";
+        
+}
+
+ 
+File: AirGrapServer\Datasurse\DataBase.cs
+----------------
+using System.Text.Json;
+using Npgsql;
+
+
+namespace AirGrap.Datasurse;
+
+public class DataBase
+{
+    public NpgsqlDataSource dataSource;
+    public DataBase()
+    {
+        ConectionString? ConInf = null;
+        if (File.Exists("Datasurse/ConectionSettings.json"))
+        {
+            var jsonInput = File.ReadAllText("Datasurse/ConectionSettings.json");
+            ConInf = JsonSerializer.Deserialize<ConectionString>(jsonInput);
+        }
+        if (ConInf == null) ConInf = new();
+        
+        string connectionString = $"Host={ConInf.Host};Port={ConInf.Port};Database={ConInf.Database};Username={ConInf.Username};Password={ConInf.Password}";
+        dataSource = NpgsqlDataSource.Create(connectionString);
+    }
+
+        
+}
+
+ 
+File: AirGrapServer\Datasurse\ServerStatus.cs
+----------------
+namespace AirGrap.Datasurse;
+public enum ServerStatus
+    {
+        OK,
+        Error,
+        NoConection
+    }
+ 
+File: AirGrapServer\DTOS\AuntificationDTO.cs
+----------------
+namespace AirGrap.DTOs;
+public class AuntificationDTO
+{
+    public string? login {get;set;}
+    public string? password {get;set;}
+}
+ 
+File: AirGrapServer\DTOS\RegistrationDTO.cs
+----------------
+namespace AirGrap.DTOs;
+public class RegistrationDTO
+{
+    public string? login {get;set;}
+    public string? password {get;set;}
+    public string? nickname {get;set;}
+}
+ 
+File: AirGrapServer\Exceptions\AuntificationExceptions.cs
+----------------
+ 
+File: AirGrapServer\Exceptions\RegistrationExceptions.cs
+----------------
+namespace AirGrap.Exceptions;
+
+public class RegistrationFailedException : Exception
+{
+    public RegistrationFailedException()
+        : base("registration failed try again"){}
+}
+
+ 
+File: AirGrapServer\Exceptions\UserExceptions.cs
+----------------
+namespace AirGrap.Exceptions;
+public class NullInputFieldException : Exception
+{
+    public NullInputFieldException()
+        : base("There is no mandatory value"){}
+}
+public class UserAlreadyExistsException : Exception
+{
+    public string Login { get; }
+    public UserAlreadyExistsException(string _login)
+        : base($"login '{_login}' already exists") => Login = _login;
+}
+ 
+File: AirGrapServer\Logs\loger.cs
+----------------
+using System.Diagnostics;
+using System.Reflection;
+using System.Text.Json;
+using AirGrap.log;
+namespace AirGrap;
+public static class Logger
+{
+    static JsonSerializerOptions options = new JsonSerializerOptions
+    {
+        WriteIndented = true,
+    };
+    public static void Init()
+    {
+        if (!Directory.Exists("AirGrapLogs"))
+            Directory.CreateDirectory("AirGrapLogs");
+        if (!File.Exists("AirGrapLogs/ErrorLog.json"))
+            File.Create("AirGrapLogs/ErrorLog.json");
+        if (!File.Exists("AirGrapLogs/Log.json"))
+            File.Create("AirGrapLogs/Log.json");
+    }
+    static object locker = new();
+    
+    public static void AddErrorLog(string text,string context = "")
+    {
+        ErrorLogFormat log = new();
+
+        StackFrame frame = new StackFrame(1);
+        MethodBase? Method = frame.GetMethod();
+
+        if (Method != null)
+        {
+            var Class = Method.DeclaringType;
+            
+            if (Class == null || Class.FullName == null)
+                log.Class = "null";
+            else 
+                log.Class = Class.FullName.Replace("\u002B\u003C",".").Replace("\u003Ed__3","()");
+        }
+        log.Time = DateTime.Now;
+        log.Error = text;
+        if (context != string.Empty)
+            log.Context = context; 
+        
+        string json = JsonSerializer.Serialize(log,options);
+        lock (locker)
+            File.AppendAllText("AirGrapLogs/ErrorLog.json",string.Concat(json,"\n"));
+        
+    }
+    public static void AddLog(string text,string context = "")
+    {
+        LogFormat log = new();
+        log.Time = DateTime.Now;
+        log.Message = text;
+        if (context != string.Empty)
+            log.Context = context; 
+        
+        string json = JsonSerializer.Serialize(log,options);
+        lock (locker)
+            File.AppendAllText("AirGrapLogs/Log.json",string.Concat(json,"\n"));
+        
+    }
+
+}
+
+ 
+File: AirGrapServer\Logs\LogFormat.cs
+----------------
+namespace AirGrap.log;
+class ErrorLogFormat
+{
+    public DateTime Time { get; set; }
+    public string Class { get; set; } = "";
+    public string Error { get; set; } = "";
+    public string Context {get; set;} = "NotContext";        
+}
+class LogFormat
+{
+    public DateTime Time { get; set; }
+    public string Message { get; set; } = "";
+    public string Context {get; set;} = "NotContext";        
+}
+ 
+File: AirGrapServer\Servises\DBServise.cs
+----------------
+using Npgsql;
+using AirGrap.Datasurse;
+using AirGrap.Exceptions;
+namespace AirGrap.Services;
+
+public class DbService (NpgsqlDataSource _dataBase) : IDbService
+{
+
+    public async Task<ServerStatus> CheckConnectionAsync()
+    {
+        try
+        {
+            await using var cmd = _dataBase.CreateCommand("SELECT 1");
+            var raw = await cmd.ExecuteScalarAsync();
+            return raw is int i && i == 1 ? ServerStatus.OK : ServerStatus.Error;
+        }
+        catch (Exception ex)
+        {
+            Logger.AddErrorLog($"DB check failed: {ex.Message}");
+            return ServerStatus.NoConection;
+        }
+    }
+    public async Task Registration(
+        string login,string Password,string nicname)
+    {
+        
+        try
+        {
+            await using var cmd = _dataBase.CreateCommand("call registration($1,$2,$3);");
+            cmd.Parameters.AddWithValue(login);
+            cmd.Parameters.AddWithValue(Password);
+            cmd.Parameters.AddWithValue(nicname);
+            await cmd.ExecuteNonQueryAsync();
+        }
+        catch (PostgresException ex) when (ex.SqlState == "23505")
+        {
+            throw new UserAlreadyExistsException(login);
+        }
+        catch (PostgresException ex) when (ex.SqlState == "23502")
+        {
+            throw new NullInputFieldException();
+        }
+        catch (PostgresException ex)
+        {
+            Console.WriteLine($"Registration failed: {ex.Message}");
+            throw new RegistrationFailedException();
+        }
+    }
+    public async Task<string?> Auntification(string login,string Password)
+    {
+        try
+        {
+            await using var cmd = _dataBase.CreateCommand("select auntification($1,$2)");
+            cmd.Parameters.AddWithValue(login);
+            cmd.Parameters.AddWithValue(Password);
+            string? token = (await cmd.ExecuteScalarAsync() ?? String.Empty).ToString();
+            return token;
+        }
+
+        catch (PostgresException ex) when (ex.SqlState == "23505")
+        { 
+            throw new UserAlreadyExistsException(login);
+        }
+        catch (PostgresException ex)
+        {
+            Console.WriteLine($"Registration failed: {ex.Message}");
+            throw new RegistrationFailedException();
+        }
+    }
+
+}
+ 
+File: AirGrapServer\Servises\IDBServise.cs
+----------------
+using Npgsql;
+using AirGrap.Datasurse;
+public interface IDbService
+{
+    public Task<ServerStatus> CheckConnectionAsync();
+    public Task Registration(string login,string Password,string nicname);
+    public Task<string?> Auntification(string login,string Password);
+}
+ 
+File: database\functions.sql
+----------------
+drop function if exists auntification;
+drop function if exists create_direct_conversation;
+
+create function auntification (_login varchar,p_password varchar)
+returns TEXT
+LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_token TEXT;
+	v_user_id bigint;
+BEGIN
+    v_user_id := (select id from users where login = _login and password_hash = crypt(p_password, password_hash));
+	if v_user_id IS NULL THEN  RETURN NULL;END IF;
+	v_token := encode(gen_random_bytes(32), 'base64');
+	INSERT INTO sessions(user_id,token) values (v_user_id,v_token);
+	if (select count(user_id) from sessions where user_id = v_user_id group by user_id) > 3 then 
+		delete from sessions where created_at = (select min(created_at) from sessions where user_id = v_user_id) and user_id = v_user_id;
+		end if;
+	update users set last_login = now() where users.id = v_user_id ;
+	return v_token;
+END;
+$$;
+
+
+create function create_direct_conversation(i_token text ,interlocutor_id bigint)
+returns bigint
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+declare 
+	p_user_id bigint;
+	p_conversations_id bigint;
+BEGIN
+	p_user_id := (select s.user_id from sessions as s where i_token = s.token);
+	if p_user_id is null then raise exception 'invalid token'; end if;
+	if not exists (select 1 from users where id = interlocutor_id) then raise exception 'interlocutor not found';end if;
+	p_conversations_id := (select c.id from conversations c 
+		join conversation_participants c0 ON c0.conversation_id = c.id AND c0.user_id = p_user_id
+    	join conversation_participants c1 ON c1.conversation_id = c.id AND c1.user_id = interlocutor_id
+    	where c.type = 'D');
+	if p_conversations_id is null then
+   		insert INTO conversations (type) 
+	    	values ('D') returning id into p_conversations_id;
+		insert into conversation_participants(conversation_id,user_id) 
+			values (p_conversations_id,p_user_id);
+		insert into conversation_participants(conversation_id,user_id) 
+			values (p_conversations_id,interlocutor_id);
+	end if;
+	return p_conversations_id;
+END;
+$$;
+
+ 
+File: database\planner.sql
+----------------
+
+SELECT * FROM timetable.task;
+SELECT timetable.delete_job('cleanup-sessions');
+SELECT timetable.add_job(
+    job_name     => 'cleanup-sessions',
+    job_schedule => '*/30 * * * *',
+    job_command  => $$DELETE FROM sessions WHERE last_activity_at < NOW() - INTERVAL '30 minutes'$$
+);
+
+ 
+File: database\procedure.sql
+----------------
+drop PROCEDURE if exists registration;
+drop PROCEDURE if exists send_message(text,bigint,text);
+drop PROCEDURE if exists send_message(text,bigint,text,bigint);
+
+CREATE PROCEDURE registration(_login varchar, p_password varchar,_nickname varchar)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO users (login, password_hash,nickname) VALUES (_login, crypt(p_password,gen_salt('bf',10)),_nickname);
+END;
+$$;
+
+create PROCEDURE send_message (i_token text,i_conversation_id bigint,i_message text)
+LANGUAGE plpgsql
+SECURITY DEFINER 
+SET search_path = public
+AS $$
+declare
+p_user_id bigint;
+BEGIN
+	 p_user_id := (select user_id from sessions where token = i_token);
+	 if p_user_id is null 
+	 	then raise exception 'session is not found'; end if ;
+	 if not exists (select * from conversation_participants as c where c.conversation_id = i_conversation_id and c.user_id = p_user_id) then 
+	 	raise exception 'conversation is not found'; end if ;
+	 insert into messages(conversation_id,user_id,message) values (i_conversation_id,p_user_id,i_message);
+END;
+$$;
+
+create PROCEDURE send_message (i_token text,i_conversation_id bigint,i_message text,i_reply_to_id bigint)
+LANGUAGE plpgsql
+SECURITY DEFINER 
+SET search_path = public
+AS $$
+declare
+p_user_id bigint;
+BEGIN
+	 p_user_id := (select user_id from sessions where token = i_token);
+	 if p_user_id is null 
+	 	then raise exception 'session is not found'; end if ;
+	 if not exists (select * from conversation_participants as c where c.conversation_id = i_conversation_id and c.user_id = p_user_id) then 
+	 	raise exception 'conversation is not found'; end if ;
+	 if not exists (select * from messages as m where m.id = i_reply_to_id) then 
+	 	raise exception 'conversation is not found'; end if ;
+	 insert into messages(conversation_id,user_id,message,reply_to_id) values (i_conversation_id,p_user_id,i_message,i_reply_to_id);
+END;
+$$;
+ 
+File: database\qwery.sql
+----------------
+--call registration('lets_ste','qwerty','lets');
+--call registration('lets_qte','qwerty','lets_Q');
+--select create_direct_conversation(auntification('lets_ste','qwerty'),(select id from users where login = 'lets_qte'));
+--call send_message(auntification('lets_ste','qwerty'),1,'hello World',1);
+--select * from messages;
+--call registration('lets_ste','qwerty','lets');
+select * from users
+
+
+ 
+File: database\tables.sql
+----------------
+drop table if exists log;
+drop table if exists messages;
+drop table if exists conversation_participants;
+drop table if exists conversations;
+drop table if exists sessions;
+drop table if exists users;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+create table users (
+	id bigserial primary key,
+    login varchar unique not null,
+	password_hash text not null,
+	nickname varchar not null ,
+	last_login timestamptz ,
+	account_type char(1) not null default 'U' check (account_type in ('U','A')),
+    created_at timestamptz  not null default now(),
+	settings jsonb not null default '{}'::jsonb
+);
+
+
+create table conversations  (
+	id bigserial primary key,
+	name varchar,
+	type char(1) not null check (type in ('D','G')),
+	created_at timestamptz  not null default now(),
+	updated_at timestamptz not null default now(),
+	check (type = 'D' or name is not null)
+);
+create index idx_conversations_type on conversations(type);
+create index idx_conversations_updated on conversations(updated_at desc);
+
+
+create table conversation_participants (
+	conversation_id BIGINT not null references conversations(id) on delete cascade,
+    user_id BIGINT not null references users(id) on delete cascade,
+	user_role char(1) not null default 'U' check (user_role in ('U','A','B')),
+	last_read_id BIGINT,
+    joined_at timestamptz  not null default now(),
+    PRIMARY KEY (conversation_id, user_id) 
+);
+create index idx_participants_user on conversation_participants(user_id);
+create index idx_participants_conv on conversation_participants(conversation_id);
+
+
+create table messages (
+    id BIGSERIAL PRIMARY KEY,
+    conversation_id BIGINT not null references conversations(id) on delete cascade,
+    user_id BIGINT references users(id) on delete set null,
+    message text,
+	reply_to_id BIGINT references messages(id) on delete set null,
+    created_at timestamptz not null default now(),
+    edited_at timestamptz 
+);
+create index idx_messages_conv_id on messages(conversation_id, id desc);
+
+
+create table sessions (
+    user_id bigint not null references users(id) on delete cascade,
+	token text primary key, 
+	created_at timestamptz not null default now(),
+    last_activity_at timestamptz  not null default now()
+);
+create index idx_sessions_user on sessions(user_id);
+create index idx_sessions_last_activity on sessions(last_activity_at);
+
+create table log (
+	table_name varchar not null,
+	event_type char(1) check (event_type in ('D','U','I')),
+	old_value jsonb,
+    new_value jsonb,
+	user_id bigint,
+	created_at timestamptz not null default now()
+);
+ 
+File: database\triggers.sql
+----------------
+CREATE TRIGGER trigger_set_updated_at
+    BEFORE UPDATE ON products -- РЎСЂР°Р±Р°С‚С‹РІР°РµС‚ РґРѕ РІС‹РїРѕР»РЅРµРЅРёСЏ UPDATE
+    FOR EACH ROW               -- Р”Р»СЏ РєР°Р¶РґРѕР№ РёР·РјРµРЅСЏРµРјРѕР№ СЃС‚СЂРѕРєРё
+    EXECUTE FUNCTION set_updated_at();
+ 
+File: planner\samples\Autonomous.sql
+----------------
+-- An advanced example showing how to use atutonomous tasks.
+-- This one-task chain will execute test_proc() procedure.
+-- Since procedure will make two commits (after f1() and f2())
+-- we cannot use it as a regular task, because all regular tasks 
+-- must be executed in the context of a single chain transaction.
+-- Same rule applies for some other SQL commands, 
+-- e.g. CREATE DATABASE, REINDEX, VACUUM, CREATE TABLESPACE, etc.
+CREATE OR REPLACE FUNCTION f (msg TEXT) RETURNS void AS $$
+BEGIN 
+    RAISE notice '%', msg; 
+END;
+$$ LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE PROCEDURE test_proc () AS $$
+BEGIN
+    PERFORM f('hey 1');
+    COMMIT;
+    PERFORM f('hey 2');
+    COMMIT;
+END;
+$$
+LANGUAGE PLPGSQL;
+
+DELETE FROM timetable.chain WHERE chain_name = 'call_proc_every_10s';
+
+WITH
+    cte_chain (v_chain_id) AS (
+        INSERT INTO timetable.chain (chain_name, run_at, max_instances, live, self_destruct) 
+        VALUES (
+            'call_proc_every_10s', -- chain_name, 
+            '@every 10 seconds',        -- run_at,
+            1,     -- max_instances, 
+            TRUE,  -- live, 
+            FALSE -- self_destruct
+        ) RETURNING chain_id
+    ),
+    cte_task(v_task_id) AS (
+        INSERT INTO timetable.task (chain_id, task_order, kind, command, ignore_error, autonomous)
+        SELECT v_chain_id, 10, 'SQL', 'CALL test_proc()', TRUE, TRUE
+        FROM cte_chain
+        RETURNING task_id
+    )
+SELECT v_chain_id, v_task_id FROM cte_task, cte_chain;
+
+ 
+File: planner\samples\Basic.sql
+----------------
+DELETE FROM timetable.chain WHERE chain_name = 'notify_every_minute';
+
+SELECT timetable.add_job(
+    job_name            => 'notify_every_minute',
+    job_schedule        => '* * * * *',
+    job_command         => 'SELECT pg_notify($1, $2)',
+    job_parameters      => '[ "TT_CHANNEL", "Ahoj from SQL base task" ]' :: jsonb,
+    job_kind            => 'SQL'::timetable.command_kind,
+    job_client_name     => NULL,
+    job_max_instances   => 1,
+    job_live            => TRUE,
+    job_self_destruct   => FALSE,
+    job_ignore_errors   => TRUE
+) as chain_id;
+ 
+File: planner\samples\Chain.sql
+----------------
+DO $$
+
+    -- In order to create chain of tasks, We will create few base tasks and 
+    -- each command_id will be associated with a task_id.
+    -- There will be only one HEAD chain (parent_id = null).
+    -- task_id of HEAD chain will be parent_id of other chains.
+
+DECLARE
+    v_parent_id         bigint;
+    v_task_id          bigint;
+    v_chain_id   bigint;
+BEGIN
+    -- Remove existing chain to make this script idempotent
+    DELETE FROM timetable.chain WHERE chain_name = 'chain_operation';
+
+    -- In order to implement chain pperation, we will create a table
+    CREATE TABLE IF NOT EXISTS timetable.chain_log (
+        chain_log BIGSERIAL,
+        EVENT TEXT,
+        time TIMESTAMPTZ,
+        PRIMARY KEY (chain_log)
+    );
+
+    -- Let's create a new chain and add tasks to it later
+    INSERT INTO timetable.chain (
+        chain_id, 
+        chain_name, 
+        run_at, 
+        max_instances, 
+        live,
+        self_destruct, 
+        exclusive_execution
+    ) VALUES (
+        DEFAULT,            -- chain_id, 
+        'chain_operation',  -- chain_name
+        '* * * * *',        -- run_at, 
+        1,                  -- max_instances, 
+        TRUE,               -- live, 
+        FALSE,              -- self_destruct,
+        FALSE               -- exclusive_execution, 
+    ) RETURNING chain_id INTO v_chain_id;
+
+    --Add a head task
+    INSERT INTO timetable.task (chain_id, task_order, command, ignore_error)
+    VALUES (v_chain_id, 1, 'INSERT INTO timetable.chain_log (EVENT, time) VALUES ($1, CURRENT_TIMESTAMP)', TRUE)
+    RETURNING task_id INTO v_parent_id;
+
+    -- Add one more task, this task will keep parent_id value which is task_id of the HEAD task
+    INSERT INTO timetable.task (chain_id, task_order, command, ignore_error)
+    VALUES (v_chain_id, 2, 'INSERT INTO timetable.chain_log (EVENT, time) VALUES ($1, CURRENT_TIMESTAMP)', TRUE)
+    RETURNING task_id INTO v_task_id;
+
+    INSERT INTO timetable.parameter(task_id, order_id, value)
+    VALUES 
+        -- Parameter for HEAD (parent) task
+        (v_parent_id, 1, '["Added"]' :: jsonb),
+        -- Parameter for the next task
+        (v_task_id, 1, '["Updated"]' :: jsonb);
+
+    -- Add one more task swowing IDs for all tasks within the chain
+    INSERT INTO timetable.task (chain_id, task_order, command, ignore_error)
+    VALUES (v_chain_id, 3, 
+    $CMD$
+        DO $BODY$ 
+        DECLARE tasks TEXT;
+        BEGIN 
+            SELECT array_agg(task_id ORDER BY task_order) FROM timetable.task
+            INTO tasks
+            WHERE chain_id = current_setting('pg_timetable.current_chain_id')::bigint;
+            RAISE NOTICE 'Task IDs in chain: %', tasks;
+        END; 
+        $BODY$
+    $CMD$, TRUE);
+   
+END;
+$$ LANGUAGE plpgsql;
+ 
+File: planner\samples\ClientMessages.sql
+----------------
+CREATE OR REPLACE FUNCTION raise_func(text)
+  RETURNS void LANGUAGE plpgsql AS
+$BODY$ 
+BEGIN
+   RAISE NOTICE 'Message by % from chain %: "%"', 
+    current_setting('pg_timetable.current_client_name')::text, 
+    current_setting('pg_timetable.current_chain_id')::text, 
+    $1; 
+END; 
+$BODY$;
+
+DELETE FROM timetable.chain WHERE chain_name = 'raise_client_message_every_minute';
+
+SELECT timetable.add_job(
+    job_name            => 'raise_client_message_every_minute',
+    job_schedule        => '* * * * *',
+    job_command         => 'SELECT raise_func($1)',
+    job_parameters      => '[ "Hey from client messages task" ]' :: jsonb,
+    job_kind            => 'SQL'::timetable.command_kind,
+    job_client_name     => NULL,
+    job_max_instances   => 1,
+    job_live            => TRUE,
+    job_self_destruct   => FALSE,
+    job_ignore_errors   => TRUE
+) as chain_id;
+ 
+File: planner\samples\CopyToFromProgram.sql
+----------------
+-- This script demonstrates how to use pg_timetable to interact with etcd.
+-- It includes tasks to write keys to etcd, read them back, and parse the results
+-- into a structured format. The difference from the Etcd.sql example is that
+-- it runs etcdctl commands locally. That allows to run pg_timetable on a remote
+-- server without etcd installed on a PostgreSQL server.
+
+-- Setup: A table to store the keys and values from etcd
+CREATE TABLE IF NOT EXISTS etcd_test_data (
+    key TEXT,
+    value TEXT
+);
+TRUNCATE public.etcd_test_data;
+
+-- An enhanced example consisting of three tasks:
+-- 1. Write key-value pairs to etcd using CopyToProgram BUILT-IN task
+-- 2. Read all keys under a specific prefix from etcd using CopyFromProgram BUILT-IN task
+-- 3. Delete all keys under the prefix using a single parameterized task
+DO $CHAIN$
+DECLARE
+    v_task_id bigint;
+    v_chain_id bigint;
+BEGIN
+    -- Create the chain with default values executed every minute (NULL == '* * * * *' :: timetable.cron)
+    INSERT INTO timetable.chain (chain_name, live, self_destruct)
+    VALUES ('sync_etcd_with_postgresql', TRUE, TRUE)
+    RETURNING chain_id INTO v_chain_id;
+
+    -- Step 1. Write key-value pairs to etcd
+    -- Create the task to write keys to etcd
+    INSERT INTO timetable.task (chain_id, task_order, kind, command, ignore_error)
+    VALUES (v_chain_id, 1, 'BUILTIN', 'CopyToProgram', FALSE)
+    RETURNING task_id INTO v_task_id;
+
+    -- Create the parameters for the task
+    INSERT INTO timetable.parameter (task_id, order_id, value)
+    VALUES (v_task_id, 1, jsonb_build_object(
+    'sql', $$COPY (
+        SELECT encode('timetable/' || name::bytea, 'base64'), encode(setting::bytea, 'base64') FROM pg_settings
+        ) TO STDOUT$$,
+    'cmd', 'sh',
+    'args', jsonb_build_array(
+        '-c',
+        $$while IFS=$'\t' read key_b64 value_b64; do
+            [ -z "$key_b64" ] && echo "Skipping empty key" && continue
+            [ -z "$value_b64" ] && echo "Skipping empty value" && continue
+            key=$(printf '%s' "$key_b64" | base64 -di)
+            value=$(printf '%s' "$value_b64" | base64 -di)
+            etcdctl put "$key" "$value"
+        done$$)
+        )
+    );
+
+
+    -- Step 2. Read all keys under the prefix from etcd
+    -- Create the task to read keys from etcd
+    INSERT INTO timetable.task (chain_id, task_order, kind, command, ignore_error)
+    VALUES (v_chain_id, 2, 'BUILTIN', 'CopyFromProgram', FALSE)
+    RETURNING task_id INTO v_task_id;
+
+    -- Create the parameters for the task
+    INSERT INTO timetable.parameter (task_id, order_id, value)
+    VALUES (v_task_id, 1, jsonb_build_object(
+        'sql', 'COPY etcd_test_data FROM STDIN',
+        'cmd', 'sh',
+        'args', jsonb_build_array(
+            '-c',
+            $$etcdctl get --prefix timetable/ | awk 'NR%2==1{key=$0} NR%2==0{print key "\t" $0}'$$
+            )
+        )
+    );
+
+    -- Step 3. Delete all keys under the prefix from etcd
+    -- Create the task to delete keys from etcd
+    INSERT INTO timetable.task (chain_id, task_order, kind, command, ignore_error)
+    VALUES (v_chain_id, 3, 'PROGRAM', 'etcdctl', FALSE)
+    RETURNING task_id INTO v_task_id;
+
+    -- Create the parameters for the task
+    INSERT INTO timetable.parameter (task_id, order_id, value)
+    VALUES (v_task_id, 1, jsonb_build_array('del', '--prefix', 'timetable/'));
+
+END; $CHAIN$
+ 
+File: planner\samples\CronStyle.sql
+----------------
+-- Create a job with the timetable.add_job function in cron style
+
+-- In order to demonstrate Cron style schduling of job execution, we will create a table(One time) for inserting of data 
+CREATE TABLE IF NOT EXISTS timetable.dummy_log (
+    log_ID BIGSERIAL,
+    event_name TEXT,
+    timestmp TIMESTAMPTZ DEFAULT TRANSACTION_TIMESTAMP(),
+    PRIMARY KEY (log_ID));
+
+----CRON-Style
+-- * * * * * command to execute
+-- в”¬ в”¬ в”¬ в”¬ в”¬
+-- в”‚ в”‚ в”‚ в”‚ в”‚
+-- в”‚ в”‚ в”‚ в”‚ в””в”Ђв”Ђв”Ђв”Ђ day of the week (0 - 7) (Sunday to Saturday)(0 and 7 is Sunday);
+-- в”‚ в”‚ в”‚ в””в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ month (1 - 12)
+-- в”‚ в”‚ в””в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ day of the month (1 - 31)
+-- в”‚ в””в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ hour (0 - 23)
+-- в””в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ minute (0 - 59)
+
+DELETE FROM timetable.chain WHERE chain_name = 'cron_insert_every_2h_on_27th';
+
+SELECT timetable.add_job (
+    job_name     => 'cron_insert_every_2h_on_27th',
+    job_schedule => '40 */2 27 * *',
+    job_command  => $$INSERT INTO timetable.dummy_log (event_name) VALUES ('Cron test')$$
+);
+ 
+File: planner\samples\DelayedRetry.sql
+----------------
+CREATE OR REPLACE FUNCTION retry_chain_on_error(
+	worker_name text, 
+	maximum_retry_count integer, 
+	minimum_retry_timeout interval, 
+	maximum_retry_duration interval) 
+RETURNS void 
+LANGUAGE plpgsql
+AS $$
+DECLARE 
+	last_retry interval;
+	retries integer;
+BEGIN
+     SELECT now() - max(finished), count(*)  
+     	INTO last_retry, retries
+ 		FROM timetable.execution_log
+		WHERE chain_id = current_setting('pg_timetable.current_chain_id')::bigint 
+		AND returncode != 0 AND client_name = worker_name
+		AND finished BETWEEN now() - maximum_retry_duration AND now() - minimum_retry_timeout;
+
+	RAISE NOTICE 'Last retry attempt made % ago; that was % retry attempt', last_retry, retries;
+	IF retries >= maximum_retry_count THEN
+		RAISE NOTICE 'The number % of retry attempts exceeds the max retry count %', retries, maximum_retry_count;
+		RETURN;
+	END IF;
+	last_retry := coalesce(last_retry * 2, minimum_retry_timeout);
+	RAISE NOTICE 'Schedule a retry attempt in %', last_retry;
+	PERFORM timetable.notify_chain_start(
+    	chain_id => current_setting('pg_timetable.current_chain_id')::bigint, 
+    	worker_name => worker_name,
+    	start_delay => last_retry);
+END
+$$;
+
+DELETE FROM timetable.chain WHERE chain_name = 'retry_on_fail_delayed';
+
+SELECT timetable.add_job(
+        job_name            => 'retry_on_fail_delayed',
+        job_schedule        => '@every 10 minutes',
+        job_command         => 'SELECT 42/0',
+        job_kind            => 'SQL'::timetable.command_kind,
+        job_live            => TRUE,
+        job_ignore_errors   => FALSE,
+        job_on_error        => $$SELECT retry_chain_on_error(
+            worker_name => 'demo_worker', 
+            maximum_retry_count => 3, 
+            minimum_retry_timeout => interval '10 seconds', 
+            maximum_retry_duration => interval '5 minutes')$$
+    );
+ 
+File: planner\samples\Download.sql
+----------------
+-- Prepare the destination table 'location'
+CREATE TABLE IF NOT EXISTS public.city(
+    city text,
+    lat numeric,
+    lng numeric,
+    country text,
+    iso2 text,
+    admin_name text,
+    capital text,
+    population bigint,
+    population_proper bigint);
+   
+GRANT ALL ON public.city TO scheduler;
+
+-- An enhanced example consisting of three tasks:
+-- 1. Download text file from internet using BUILT-IN command
+-- 2. Remove accents (diacritic signs) from letters using PROGRAM command (can be done with `unaccent` PostgreSQL extension) 
+-- 3. Import text file as CSV file using BUILT-IN command (can be down with `psql -c /copy`)
+DO $$
+DECLARE
+    v_task_id bigint;
+    v_chain_id bigint;
+BEGIN
+    -- Create the chain with default values executed every minute (NULL == '* * * * *' :: timetable.cron)
+    INSERT INTO timetable.chain (chain_name, live)
+    VALUES ('download_locations_and_aggregate', TRUE)
+    RETURNING chain_id INTO v_chain_id;
+
+    -- Step 1. Download file from the server
+    -- Create the chain
+    INSERT INTO timetable.task (chain_id, task_order, kind, command, ignore_error)
+    VALUES (v_chain_id, 1, 'BUILTIN', 'Download', TRUE)
+    RETURNING task_id INTO v_task_id;
+
+    -- Create the parameters for the step 1:
+    INSERT INTO timetable.parameter (task_id, order_id, value)
+        VALUES (v_task_id, 1, 
+           '{
+                "workersnum": 1,
+                "fileurls": ["https://simplemaps.com/static/data/country-cities/mt/mt.csv"], 
+                "destpath": "."
+            }'::jsonb);
+    
+    RAISE NOTICE 'Step 1 completed. Chain added with ID: %; DownloadFile task added with ID: %', v_chain_id, v_task_id;
+
+    -- Step 2. Transform Unicode characters into ASCII
+    -- Create the program task to call 'uconv' and name it 'unaccent'
+    INSERT INTO timetable.task (chain_id, task_order, kind, command, ignore_error, task_name)
+    VALUES (v_chain_id, 2, 'PROGRAM', 'uconv', TRUE, 'remove_accents')
+    RETURNING task_id INTO v_task_id;
+
+    -- Create the parameters for the 'unaccent' task. Input and output files in this case
+    -- Under Windows we should call PowerShell instead of "uconv" with command:
+    -- Set-content "orte_ansi.txt" ((Get-content "orte.txt").Normalize("FormD") -replace '\p{M}', '')
+    INSERT INTO timetable.parameter (task_id, order_id, value)
+        VALUES (v_task_id, 1, '["-x", "Latin-ASCII", "-o", "mt_ansi.csv", "mt.csv"]'::jsonb);
+
+    RAISE NOTICE 'Step 2 completed. Unacent task added with ID: %', v_task_id;
+
+    -- Step 3. Import ASCII file to PostgreSQL table using "CopyFromFile" built-in command
+    INSERT INTO timetable.task (chain_id, task_order, kind, command)
+        VALUES (v_chain_id, 3, 'BUILTIN', 'CopyFromFile')
+    RETURNING task_id INTO v_task_id;
+
+    -- Add the parameters for the download task. Execute client side COPY to 'location' from 'orte_ansi.txt'
+    INSERT INTO timetable.parameter (task_id, order_id, value)
+        VALUES (v_task_id, 1, '{"sql": "COPY city FROM STDIN (FORMAT csv, HEADER true)", "filename": "mt_ansi.csv" }'::jsonb);
+
+    RAISE NOTICE 'Step 3 completed. Import task added with ID: %', v_task_id;
+
+    INSERT INTO timetable.task (chain_id, task_order, kind, command, ignore_error, task_name)
+    VALUES (v_chain_id, 4, 'PROGRAM', 'bash', TRUE, 'remove_csv_files')
+    RETURNING task_id INTO v_task_id;
+
+    INSERT INTO timetable.parameter (task_id, order_id, value)
+    VALUES (v_task_id, 1, '["-c", "rm *.csv"]'::jsonb);
+   
+   RAISE NOTICE 'Step 4 completed. Cleanup task added with ID: %', v_task_id;
+END;
+$$ LANGUAGE PLPGSQL;
+ 
+File: planner\samples\ErrorHandling.sql
+----------------
+DELETE FROM timetable.chain WHERE chain_name = 'fail_with_on_error_notify';
+
+SELECT timetable.add_job(
+        job_name            => 'fail_with_on_error_notify',
+        job_schedule        => '* * * * *',
+        job_command         => 'SELECT 42/0',
+        job_kind            => 'SQL'::timetable.command_kind,
+        job_live            => TRUE,
+        job_ignore_errors   => FALSE,
+        job_on_error        => $$SELECT pg_notify('monitoring', 
+            format('{"ConfigID": %s, "Message": "Something bad happened"}', 
+                current_setting('pg_timetable.current_chain_id')::bigint))$$
+    );
+ 
+File: planner\samples\Etcd.sql
+----------------
+-- This sample demonstrates how to read multiple key-value pairs from an etcd cluster
+-- based on a prefix and reflect them in a database table.
+--
+-- It assumes that:
+-- 1. etcdctl is installed and available in the system's PATH.
+-- 2. The etcd cluster is accessible. The default endpoint is http://127.0.0.1:2379.
+-- 3. The user running pg_timetable has sufficient permissions to execute the etcdctl command.
+
+-- The chain will perform the following steps:
+-- 1. Define one task to write to etcd and provide multiple parameter rows to it.
+--    The task will be executed for each parameter row.
+-- 2. Read all key-values under that prefix from etcd as a single JSON object.
+-- 3. Parse the JSON, decode the base64 keys and values, and store them in a table.
+-- 4. Log the number of keys retrieved.
+-- 5. Delete all keys under the prefix from etcd using a single parameterized task.
+
+-- Setup: A table to store the keys and values from etcd
+CREATE TABLE IF NOT EXISTS etcd_test_data (
+    key TEXT,
+    value TEXT
+);
+TRUNCATE public.etcd_test_data;
+
+-- Setup: A temporary table to store raw JSON output from etcd
+CREATE TABLE IF NOT EXISTS etcd_json_raw (
+    data JSONB
+);
+TRUNCATE etcd_json_raw;
+
+-- The chain definition
+-- It runs once and then removes itself (self_destruct).
+INSERT INTO timetable.chain (
+    chain_name,
+    run_at,
+    max_instances,
+    live,
+    self_destruct
+)
+VALUES (
+    'etcd_prefix_read_clean',
+    '* * * * *', -- Run every minute, but self_destruct will make it run once
+    1,
+    TRUE,
+    TRUE
+)
+RETURNING chain_id;
+
+-- Task 1: A single task to write key-value pairs to etcd.
+-- This task will be executed 3 times, once for each parameter row below.
+WITH task AS (
+    INSERT INTO timetable.task (chain_id, task_order, task_name, kind, command, ignore_error)
+    SELECT currval('timetable.chain_chain_id_seq'), 10, 'write_keys_to_etcd', 'PROGRAM', 'etcdctl', FALSE
+    RETURNING task_id
+)
+INSERT INTO timetable.parameter (task_id, order_id, value)
+SELECT task_id, 1, '["--endpoints=http://127.0.0.1:2379", "put", "/pg_timetable/multi/key1", "value1"]'::jsonb FROM task UNION ALL
+SELECT task_id, 2, '["--endpoints=http://127.0.0.1:2379", "put", "/pg_timetable/multi/key2", "value2"]'::jsonb FROM task UNION ALL
+SELECT task_id, 3, '["--endpoints=http://127.0.0.1:2379", "put", "/pg_timetable/multi/key3", "value3"]'::jsonb FROM task;
+
+-- Task 2: Read all keys under the prefix from etcd as JSON
+INSERT INTO timetable.task (
+    chain_id,
+    task_order,
+    task_name,
+    kind,
+    command,
+    ignore_error
+)
+SELECT
+    currval('timetable.chain_chain_id_seq'),
+    20,
+    'read_from_etcd_with_prefix',
+    'SQL',
+    $$COPY etcd_json_raw (data) FROM PROGRAM 'etcdctl --endpoints=http://127.0.0.1:2379 get --prefix /pg_timetable/multi/ --write-out=json'$$,
+    FALSE;
+
+-- Task 3: Parse JSON array and store the key-value pairs
+INSERT INTO timetable.task (
+    chain_id,
+    task_order,
+    task_name,
+    kind,
+    command,
+    ignore_error
+)
+SELECT
+    currval('timetable.chain_chain_id_seq'),
+    30,
+    'parse_etcd_output_and_store',
+    'SQL',
+    $$INSERT INTO public.etcd_test_data (key, value)
+      SELECT
+          convert_from(decode(kv->>'key', 'base64'), 'UTF8'),
+          convert_from(decode(kv->>'value', 'base64'), 'UTF8')
+      FROM
+          etcd_json_raw,
+          jsonb_array_elements(data->'kvs') AS kv$$,
+    FALSE;
+
+-- Task 4: Log the result
+INSERT INTO timetable.task (
+    chain_id,
+    task_order,
+    task_name,
+    kind,
+    command,
+    ignore_error
+)
+SELECT
+    currval('timetable.chain_chain_id_seq'),
+    40,
+    'log_etcd_output',
+    'SQL',
+    $task$
+    DO
+        $$
+            DECLARE
+            msg integer;
+            BEGIN
+                SELECT count(*) FROM public.etcd_test_data INTO msg;
+                RAISE notice 'Loaded keys from etcd: %', msg; 
+            END;
+        $$
+    $task$,
+    FALSE;
+
+-- Task 5: Clean up the keys in etcd
+WITH task AS (
+    INSERT INTO timetable.task (chain_id, task_order, task_name, kind, command, ignore_error)
+    SELECT currval('timetable.chain_chain_id_seq'), 50, 'clean_up_etcd', 'PROGRAM', 'etcdctl', FALSE
+    RETURNING task_id
+)
+INSERT INTO timetable.parameter (task_id, order_id, value)
+SELECT task_id, 1, '["--endpoints=http://127.0.0.1:2379", "del", "--prefix", "/pg_timetable/multi/"]'::jsonb FROM task;
+
+ 
+File: planner\samples\Exclusive.sql
+----------------
+CREATE OR REPLACE FUNCTION sleepy_func(text)
+  RETURNS void LANGUAGE plpgsql AS
+$BODY$ 
+BEGIN 
+   RAISE NOTICE 'Sleeping for 5 sec in %', $1;
+   PERFORM pg_sleep_for('5 seconds');
+   RAISE NOTICE 'Waking up in %', $1;
+END; 
+$BODY$;
+
+DELETE FROM timetable.chain WHERE chain_name IN ('exclusive_sleep_every_10s', 'exclusive_sleep_after_10s');
+
+SELECT timetable.add_job(
+    job_name            => 'exclusive_sleep_every_10s',
+    job_schedule        => '@every 10 seconds',
+    job_command         => 'SELECT sleepy_func($1)',
+    job_parameters      => '[ "Configuration EVERY 10sec" ]'::jsonb,
+    job_kind            => 'SQL'::timetable.command_kind,
+    job_max_instances   => 1,
+    job_live            => TRUE,
+    job_exclusive       => TRUE
+) as chain_id
+UNION
+SELECT timetable.add_job(
+    job_name            => 'exclusive_sleep_after_10s',
+    job_schedule        => '@after 10 seconds',
+    job_command         => 'SELECT sleepy_func($1)',
+    job_parameters      => '[ "Configuration AFTER 10sec" ]'::jsonb,
+    job_kind            => 'SQL'::timetable.command_kind,
+    job_max_instances   => 1,
+    job_live            => TRUE,
+    job_exclusive       => TRUE
+);
+
+ 
+File: planner\samples\Log.sql
+----------------
+DELETE FROM timetable.chain WHERE chain_name = 'builtin_log_every_minute';
+
+SELECT timetable.add_job(
+    job_name            => 'builtin_log_every_minute',
+    job_schedule        => NULL, -- same as '* * * * *'
+    job_command         => 'Log',
+    job_kind            => 'BUILTIN'::timetable.command_kind,
+    job_parameters      => '{"Description":"Log Execution"}'::jsonb
+) as chain_id;
+ 
+File: planner\samples\Mail.sql
+----------------
+DO $$
+    -- An example for using the SendMail task.
+DECLARE
+    v_mail_task_id bigint;
+    v_log_task_id bigint;
+    v_chain_id bigint;
+BEGIN
+    -- Get the chain id
+    INSERT INTO timetable.chain (chain_name, max_instances, live) VALUES ('send_mail', 1, TRUE)
+    RETURNING chain_id INTO v_chain_id;
+
+    -- Add SendMail task
+    INSERT INTO timetable.task (chain_id, task_order, kind, command) 
+    SELECT v_chain_id, 10, 'BUILTIN', 'SendMail'
+    RETURNING task_id INTO v_mail_task_id;
+
+    -- Create the parameters for the SensMail task
+        -- "username":	      The username used for authenticating on the mail server
+        -- "password":        The password used for authenticating on the mail server
+        -- "serverhost":      The IP address or hostname of the mail server
+        -- "serverport":      The port of the mail server
+        -- "senderaddr":      The email that will appear as the sender
+        -- "ccaddr":	      String array of the recipients(Cc) email addresses
+        -- "bccaddr":	      String array of the recipients(Bcc) email addresses
+        -- "toaddr":          String array of the recipients(To) email addresses
+        -- "subject":	      Subject of the email
+        -- "attachment":      String array of the attachments (local file)
+        -- "attachmentdata":  Pairs of name and base64-encoded content
+        -- "msgbody":	      The body of the email
+
+    INSERT INTO timetable.parameter (task_id, order_id, value)
+        VALUES (v_mail_task_id, 1, '{
+                "username":     "user@example.com",
+                "password":     "password",
+                "serverhost":   "smtp.example.com",
+                "serverport":   587,
+                "senderaddr":   "user@example.com",
+                "ccaddr":       ["recipient_cc@example.com"],
+                "bccaddr":      ["recipient_bcc@example.com"],
+                "toaddr":       ["recipient@example.com"],
+                "subject":      "pg_timetable - No Reply",
+                "attachment":   ["D:\\Go stuff\\Books\\Concurrency in Go.pdf","report.yaml"],
+                "attachmentdata": [{"name": "File.txt", "base64data": "RmlsZSBDb250ZW50"}],
+                "msgbody":      "<b>Hello User,</b> <p>I got some Go books for you enjoy</p> <i>pg_timetable</i>!",
+                "contenttype":  "text/html; charset=UTF-8"
+                }'::jsonb);
+    
+    -- Add Log task and make it the last task using `task_order` column (=30)
+    INSERT INTO timetable.task (chain_id, task_order, kind, command) 
+    SELECT v_chain_id, 30, 'BUILTIN', 'Log'
+    RETURNING task_id INTO v_log_task_id;
+
+    -- Add housekeeping task, that will delete sent mail and update parameter for the previous logging task
+    -- Since we're using special add_task() function we don't need to specify the `chain_id`.
+    -- Function will take the same `chain_id` from the parent task, SendMail in this particular case
+    PERFORM timetable.add_task(
+        kind => 'SQL', 
+        parent_id => v_mail_task_id,
+        command => format(
+$query$WITH sent_mail(toaddr) AS (DELETE FROM timetable.parameter WHERE task_id = %s RETURNING value->>'username')
+INSERT INTO timetable.parameter (task_id, order_id, value) 
+SELECT %s, 1, to_jsonb('Sent emails to: ' || string_agg(sent_mail.toaddr, ';'))
+FROM sent_mail
+ON CONFLICT (task_id, order_id) DO UPDATE SET value = EXCLUDED.value$query$, 
+                v_mail_task_id, v_log_task_id
+            ),
+        order_delta => 10
+    );
+
+-- In the end we should have something like this. Note, that even Log task was created earlier it will be executed later
+-- due to `task_order` column.
+
+-- timetable=> SELECT task_id, chain_id, kind, left(command, 50) FROM timetable.task ORDER BY task_order;  
+--  task_id | chain_id | task_order |  kind   |                             left
+-- ---------+----------+------------+---------+---------------------------------------------------------------
+--       45 |       24 |         10 | BUILTIN | SendMail
+--       47 |       24 |         20 | SQL     | WITH sent_mail(toaddr) AS (DELETE FROM timetable.p
+--       46 |       24 |         30 | BUILTIN | Log
+-- (3 rows)
+
+END;
+$$
+LANGUAGE PLPGSQL;
+
+ 
+File: planner\samples\ManyChains.sql
+----------------
+SELECT timetable.add_job(
+    job_name            => 'hello_world_' || g.i,
+    job_schedule        => '* * * * *',
+    job_kind            => 'PROGRAM'::timetable.command_kind,
+    job_command         => 'bash',
+    job_parameters      => jsonb_build_array('-c', 'echo Hello World from ' || g.i),
+    job_live            => TRUE,
+    job_ignore_errors   => TRUE
+) as chain_id FROM generate_series(1, 500) AS g(i);
+ 
+File: planner\samples\ManyTasks.sql
+----------------
+WITH 
+    cte_chain (v_chain_id) AS ( -- let's create a new chain and add tasks to it later
+        INSERT INTO timetable.chain (chain_name, run_at, max_instances, live) 
+        VALUES ('many_tasks', '* * * * *', 1, true)
+        RETURNING chain_id
+    ),
+    cte_tasks(v_task_id) AS ( -- now we'll add 500 tasks to the chain, some of them will fail
+        INSERT INTO timetable.task (chain_id, task_order, kind, command, ignore_error)
+        SELECT v_chain_id, g.s, 'SQL', 'SELECT 1.0 / round(random())::int4;', true
+        FROM cte_chain, generate_series(1, 500) AS g(s)
+        RETURNING task_id
+    ),
+    report_task(v_task_id) AS ( -- and the last reporting task will calculate the statistic
+        INSERT INTO timetable.task (chain_id, task_order, kind, command)
+        SELECT v_chain_id, 501, 'SQL', $CMD$DO
+$$
+DECLARE
+    s TEXT;
+BEGIN
+    WITH report AS (
+        SELECT 
+        count(*) FILTER (WHERE returncode = 0) AS success,
+        count(*) FILTER (WHERE returncode != 0) AS fail,
+        count(*) AS total
+        FROM timetable.execution_log 
+        WHERE chain_id = current_setting('pg_timetable.current_chain_id')::bigint
+          AND txid = txid_current()
+    )
+    SELECT 'Tasks executed:' || total || 
+         '; succeeded: ' || success || 
+         '; failed: ' || fail || 
+         '; ratio: ' || 100.0*success/GREATEST(total,1)
+    INTO s
+    FROM report;
+    RAISE NOTICE '%', s;
+END;
+$$
+$CMD$
+        FROM cte_chain
+        RETURNING task_id
+    )
+SELECT v_chain_id FROM cte_chain
+ 
+File: planner\samples\NoOp.sql
+----------------
+DELETE FROM timetable.chain WHERE chain_name = 'noop_every_minute';
+
+SELECT timetable.add_job(
+    job_name            => 'noop_every_minute',
+    job_schedule        => '* * * * *',
+    job_command         => 'NoOp',
+    job_kind            => 'BUILTIN'::timetable.command_kind
+) as chain_id;
+ 
+File: planner\samples\RemoteDB.sql
+----------------
+DO $$
+DECLARE 
+    v_task_id bigint;
+    v_chain_id bigint;
+    v_database_connection bigint;
+BEGIN
+    -- In order to implement remote SQL execution, we will create a table on a remote machine
+    CREATE TABLE IF NOT EXISTS timetable.remote_log (
+        remote_log BIGSERIAL,
+        remote_event TEXT,
+        timestmp TIMESTAMPTZ,
+        PRIMARY KEY (remote_log));
+
+    -- add a remote job
+    INSERT INTO timetable.chain (chain_id, chain_name, run_at, live) 
+    VALUES (DEFAULT, 'remote_db', '* * * * *', TRUE)
+    RETURNING chain_id INTO v_chain_id;
+
+    INSERT INTO timetable.task (chain_id, task_order, command, database_connection, ignore_error)
+    VALUES (v_chain_id, 
+            1,
+            'INSERT INTO timetable.remote_log(remote_event, timestmp) VALUES ($1, CURRENT_TIMESTAMP)', 
+            format('host=%s port=%s dbname=%I user=%I password=somestrong', 
+                    inet_server_addr(), 
+                    inet_server_port(),
+                    current_database(),
+                    session_user
+                    ), 
+            TRUE)
+    RETURNING
+        task_id INTO v_task_id;
+
+    --Parameter values for task
+    INSERT INTO timetable.parameter (task_id, order_id, value)
+    VALUES 
+        (v_task_id, 1, '["Row 1 added"]'::jsonb), 
+        (v_task_id, 2, '["Row 2 added"]'::jsonb);
+END;
+$$ LANGUAGE PLPGSQL;
+
+ 
+File: planner\samples\SelfDestruct.sql
+----------------
+CREATE OR REPLACE FUNCTION raise_notice_func(text)
+  RETURNS void LANGUAGE plpgsql AS
+$BODY$ 
+BEGIN 
+   RAISE NOTICE '%', $1; 
+END; 
+$BODY$;
+
+DELETE FROM timetable.chain WHERE chain_name = 'notify_then_destruct';
+
+SELECT timetable.add_job(
+    job_name            => 'notify_then_destruct',
+    job_schedule        => '* * * * *',
+    job_command         => 'SELECT raise_notice_func($1)',
+    job_parameters      => '[ "Ahoj from self destruct task" ]' :: jsonb,
+    job_kind            => 'SQL'::timetable.command_kind,
+    job_live            => TRUE,
+    job_self_destruct   => TRUE
+) as chain_id;
+ 
+File: planner\samples\Shell.sql
+----------------
+-- An example for using the PROGRAM task.
+SELECT timetable.add_job(
+    job_name            => 'psql_chain',
+    job_schedule        => '* * * * *',
+    job_kind            => 'PROGRAM'::timetable.command_kind,
+    job_command         => 'psql',
+    job_parameters      => ('[
+			"-h", "' || host(inet_server_addr()) || '",
+			"-p", "' || inet_server_port() || '",
+			"-d", "' || current_database() || '",
+			"-U", "' || current_user || '",
+			"-w", "-c", "SELECT now();"
+		]')::jsonb
+) as chain_id;
+ 
+File: planner\samples\Shutdown.sql
+----------------
+-- This one-task chain (aka job) will terminate pg_timetable session.
+-- This is useful for maintaining purposes or before database being destroyed.
+-- One should take care of restarting pg_timetable if needed.
+
+SELECT timetable.add_job (
+    job_name     => 'shutdown_on_schedule',
+    job_schedule => '* * 1 * *',
+    job_command  => 'Shutdown',
+    job_kind     => 'BUILTIN'
+);
+ 
+File: planner\samples\Sleep.sql
+----------------
+DELETE FROM timetable.chain WHERE chain_name = 'sleep_every_10s';
+
+SELECT timetable.add_job(
+    job_name            => 'sleep_every_10s',
+    job_schedule        => '@every 10 seconds',
+    job_command         => 'Sleep',
+    job_parameters      => '20' :: jsonb,
+    job_kind            => 'BUILTIN'::timetable.command_kind,
+    job_client_name     => NULL,
+    job_max_instances   => 1,
+    job_live            => TRUE
+) as chain_id;
+ 
