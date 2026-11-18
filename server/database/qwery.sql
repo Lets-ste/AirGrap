@@ -4,5 +4,5 @@
 --call send_message(auntification('lets_ste','qwerty'),1,'hello World',1);
 --select * from messages;
 --call registration('lets_ste','qwerty','lets');
-select * from users
+select * from sessions
 

@@ -42,7 +42,7 @@ public class DbService (NpgsqlDataSource _dataBase) : IDbService
         }
         catch (PostgresException ex)
         {
-            Console.WriteLine($"Registration failed: {ex.Message}");
+            Logger.AddErrorLog($"Registration failed: {ex.Message}", ex.SqlState);
             throw new RegistrationFailedException();
         }
     }
@@ -56,15 +56,30 @@ public class DbService (NpgsqlDataSource _dataBase) : IDbService
             string? token = (await cmd.ExecuteScalarAsync() ?? String.Empty).ToString();
             return token;
         }
-
-        catch (PostgresException ex) when (ex.SqlState == "23505")
-        { 
-            throw new UserAlreadyExistsException(login);
+        catch (PostgresException ex) when (ex.SqlState == "P0002")
+        {
+            throw new InvalidCredentialsException();
         }
         catch (PostgresException ex)
         {
-            Console.WriteLine($"Registration failed: {ex.Message}");
+            Logger.AddErrorLog($"Auntification failed: {ex.Message}", ex.SqlState);
             throw new RegistrationFailedException();
+        }
+    }
+    public async Task Authorize(string token)
+    {
+        try
+        {
+            await using var cmd = _dataBase.CreateCommand("select authorize($1)");
+            cmd.Parameters.AddWithValue(token);
+            var result = await cmd.ExecuteScalarAsync();
+            if (result is int i && i != 1)
+                throw new SessionNotFoundException();
+        }
+        catch (PostgresException ex)
+        {
+            Logger.AddErrorLog($"Authorize failed: {ex.Message}", ex.SqlState);
+            throw new SessionNotFoundException();
         }
     }
 

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.OpenApi;
 using AirGrap.Services;
 using AirGrap.Datasurse;
 using Scalar.AspNetCore;
+using AirGrap.Middleware;
 namespace AirGrap;
 class Program
 {
@@ -18,6 +19,7 @@ class Program
             builder.Services.AddOpenApi();
             builder.Services.AddControllers();
             var app = builder.Build();
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
             app.MapControllers();
             app.MapOpenApi();
             app.MapScalarApiReference();

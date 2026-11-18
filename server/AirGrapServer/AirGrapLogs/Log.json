@@ -18,3 +18,53 @@
   "Message": "Server Start",
   "Context": "NotContext"
 }
+{
+  "Time": "2026-11-18T22:24:30.592695+05:00",
+  "Message": "Server Start",
+  "Context": "NotContext"
+}
+{
+  "Time": "2026-11-18T22:29:11.9844309+05:00",
+  "Message": "Server Start",
+  "Context": "NotContext"
+}
+{
+  "Time": "2026-11-18T22:29:12.0606046+05:00",
+  "Message": "Server Crashed",
+  "Context": "NotContext"
+}
+{
+  "Time": "2026-11-18T22:30:18.3429672+05:00",
+  "Message": "Server Start",
+  "Context": "NotContext"
+}
+{
+  "Time": "2026-11-18T22:30:18.4196162+05:00",
+  "Message": "Server Crashed",
+  "Context": "NotContext"
+}
+{
+  "Time": "2026-11-18T22:30:26.8782476+05:00",
+  "Message": "Server Start",
+  "Context": "NotContext"
+}
+{
+  "Time": "2026-11-18T22:30:26.9595245+05:00",
+  "Message": "Server Crashed",
+  "Context": "NotContext"
+}
+{
+  "Time": "2026-11-18T22:33:06.6509855+05:00",
+  "Message": "Server Start",
+  "Context": "NotContext"
+}
+{
+  "Time": "2026-11-18T22:33:28.2779256+05:00",
+  "Message": "Server Start",
+  "Context": "NotContext"
+}
+{
+  "Time": "2026-11-18T22:51:39.5378281+05:00",
+  "Message": "Server Start",
+  "Context": "NotContext"
+}

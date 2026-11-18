@@ -15,6 +15,11 @@ public class DataBase
             var jsonInput = File.ReadAllText("Datasurse/ConectionSettings.json");
             ConInf = JsonSerializer.Deserialize<ConectionString>(jsonInput);
         }
+        else
+        {
+            File.WriteAllText("Datasurse/ConectionSettings.json",JsonSerializer.Serialize(new ConectionString()));
+        }
+            
         if (ConInf == null) ConInf = new();
         
         string connectionString = $"Host={ConInf.Host};Port={ConInf.Port};Database={ConInf.Database};Username={ConInf.Username};Password={ConInf.Password}";

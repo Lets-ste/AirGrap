@@ -1,4 +1,5 @@
 drop function if exists auntification;
+drop function if exists authorize;
 drop function if exists create_direct_conversation;
 
 create function auntification (_login varchar,p_password varchar)
@@ -12,7 +13,9 @@ DECLARE
 	v_user_id bigint;
 BEGIN
     v_user_id := (select id from users where login = _login and password_hash = crypt(p_password, password_hash));
-	if v_user_id IS NULL THEN  RETURN NULL;END IF;
+	if v_user_id IS NULL THEN
+		RAISE EXCEPTION 'invalid login or password' USING ERRCODE = 'P0002';
+	END IF;
 	v_token := encode(gen_random_bytes(32), 'base64');
 	INSERT INTO sessions(user_id,token) values (v_user_id,v_token);
 	if (select count(user_id) from sessions where user_id = v_user_id group by user_id) > 3 then 
@@ -23,6 +26,23 @@ BEGIN
 END;
 $$;
 
+create function authorize (i_token text)
+returns int
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_user_id bigint;
+BEGIN
+    v_user_id := (select user_id from sessions where token = i_token);
+    if v_user_id is null then
+        return 0;
+    end if;
+    update sessions set last_activity_at = now() where token = i_token;
+    return 1;
+END;
+$$;
 
 create function create_direct_conversation(i_token text ,interlocutor_id bigint)
 returns bigint
@@ -40,7 +60,7 @@ BEGIN
 	p_conversations_id := (select c.id from conversations c 
 		join conversation_participants c0 ON c0.conversation_id = c.id AND c0.user_id = p_user_id
     	join conversation_participants c1 ON c1.conversation_id = c.id AND c1.user_id = interlocutor_id
-    	where c.type = 'D');
+		where c.type = 'D');
 	if p_conversations_id is null then
    		insert INTO conversations (type) 
 	    	values ('D') returning id into p_conversations_id;

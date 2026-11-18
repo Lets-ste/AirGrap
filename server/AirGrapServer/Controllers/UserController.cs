@@ -18,6 +18,7 @@ public class UserController(IDbService _dbservise) : ControllerBase
     try
     {
       await _dbservise.Registration(body.login,body.password,body.nickname);
+      Logger.AddLog("user registered", body.login);
       return Ok();
     }
     catch (UserAlreadyExistsException ex)
@@ -42,11 +43,12 @@ public class UserController(IDbService _dbservise) : ControllerBase
     try
     {
       string? token = await _dbservise.Auntification(body.login,body.password);
-      return (token == null || token == String.Empty)? NotFound("user not found"): LocalRedirect($"/User/{token}");
+      Logger.AddLog("user auntification", body.login);
+      return LocalRedirect($"/User/{token}");
     }
-    catch (UserAlreadyExistsException ex)
+    catch (InvalidCredentialsException ex)
     {
-      return Conflict(new {error = ex.Message});
+      return Unauthorized(new {error = ex.Message});
     }
     catch(Exception ex)
     {
@@ -55,8 +57,17 @@ public class UserController(IDbService _dbservise) : ControllerBase
     }
   }
   [HttpGet("{token}")]
-  public IActionResult Authorized(string token)
+  public async Task<IActionResult> Authorized(string token)
   {
-    return Ok("Auntification ok");
+    try
+    {
+      await _dbservise.Authorize(token);
+      return Ok("Auntification ok");
+    }
+    catch (SessionNotFoundException ex)
+    {
+      return Unauthorized(new {error = ex.Message});
+    }
   }
 }
+ 
